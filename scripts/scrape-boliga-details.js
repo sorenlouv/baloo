@@ -49,7 +49,7 @@ function getLocation(sqren) {
 function getLocationAndResales(url) {
   return axios
     .get(`http://www.boliga.dk${url}`, {
-      timeout: 1000
+      timeout: 10000
     })
     .then(res => {
       console.log('Fetching ', url);

@@ -1,14 +1,25 @@
 {
-  "extends": ["prettier", "recommended/node"],
-  "plugins": ["prettier"],
+  "parser": "babel-eslint",
+  "env": {
+    "browser": true,
+    "node": true
+  },
   "rules": {
     "prettier/prettier": [
       "error",
       {
-        "semi": true,
-        "singleQuote": true
+        "singleQuote": true,
+        "semi": true
       }
     ],
     "no-console": 0
-  }
+  },
+  "plugins": ["prettier"],
+  "extends": [
+    "recommended/node",
+    "recommended/esnext",
+    "plugin:react/recommended",
+    "prettier",
+    "prettier/react"
+  ]
 }
