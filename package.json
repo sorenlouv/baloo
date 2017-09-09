@@ -1,0 +1,17 @@
+{
+  "name": "baloo",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "scrape": "./scripts/scrape-boliga",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Søren Louv-Jansen <sorenlouv@gmail.com>",
+  "license": "ISC",
+  "dependencies": {
+    "axios": "^0.16.2",
+    "cheerio": "^1.0.0-rc.2",
+    "elasticsearch": "^13.3.1"
+  }
+}
