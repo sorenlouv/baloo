@@ -1,3 +1,14 @@
 {
-  "extends": "recommended"
+  "extends": ["prettier", "recommended/node"],
+  "plugins": ["prettier"],
+  "rules": {
+    "prettier/prettier": [
+      "error",
+      {
+        "semi": true,
+        "singleQuote": true
+      }
+    ],
+    "no-console": 0
+  }
 }

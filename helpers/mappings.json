@@ -62,6 +62,9 @@
         },
         "zipcode": {
           "type": "long"
+        },
+        "location": {
+          "type": "geo_point"
         }
       }
     }

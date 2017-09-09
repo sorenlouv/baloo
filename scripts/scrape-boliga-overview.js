@@ -2,7 +2,7 @@ const cheerio = require('cheerio');
 const axios = require('axios');
 const elasticsearch = require('elasticsearch');
 
-var client = new elasticsearch.Client({
+const client = new elasticsearch.Client({
   host: 'localhost:9200'
 });
 

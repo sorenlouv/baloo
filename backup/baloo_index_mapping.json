@@ -1,0 +1,44 @@
+{
+  "baloo": {
+    "mappings": {
+      "buildings": {
+        "properties": {
+          "city": {
+            "type": "text",
+            "fields": { "keyword": { "type": "keyword", "ignore_above": 256 } }
+          },
+          "houseType": {
+            "type": "text",
+            "fields": { "keyword": { "type": "keyword", "ignore_above": 256 } }
+          },
+          "location": { "type": "geo_point" },
+          "roomCount": { "type": "long" },
+          "sales": {
+            "type": "nested",
+            "properties": {
+              "date": { "type": "date" },
+              "price": { "type": "long" },
+              "type": {
+                "type": "text",
+                "fields": {
+                  "keyword": { "type": "keyword", "ignore_above": 256 }
+                }
+              }
+            }
+          },
+          "size": { "type": "long" },
+          "street": {
+            "type": "text",
+            "fields": { "keyword": { "type": "keyword", "ignore_above": 256 } }
+          },
+          "url": {
+            "type": "text",
+            "fields": { "keyword": { "type": "keyword", "ignore_above": 256 } }
+          },
+          "year": { "type": "long" },
+          "zipcode": { "type": "long" }
+        }
+      }
+    }
+  }
+}
