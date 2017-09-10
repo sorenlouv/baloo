@@ -4,11 +4,13 @@
   "private": true,
   "author": "Søren Louv-Jansen <sorenlouv@gmail.com>",
   "dependencies": {
+    "axios": "^0.16.2",
+    "elasticsearch": "^13.3.1",
+    "lodash": "^4.17.4",
     "react": "^15.6.1",
     "react-dom": "^15.6.1",
-    "react-scripts": "1.0.13",
-    "axios": "^0.16.2",
-    "elasticsearch": "^13.3.1"
+    "react-google-maps": "^7.3.0",
+    "react-scripts": "1.0.13"
   },
   "scripts": {
     "start": "react-scripts start",
@@ -26,6 +28,7 @@
     "eslint-config-recommended": "^1.5.0",
     "eslint-plugin-prettier": "^2.2.0",
     "eslint-plugin-react": "^7.3.0",
-    "prettier": "^1.6.1"
+    "prettier": "^1.6.1",
+    "promise-retry": "^1.1.1"
   }
 }

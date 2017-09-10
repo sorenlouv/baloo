@@ -12,7 +12,9 @@
         "semi": true
       }
     ],
-    "no-console": 0
+    "no-console": 0,
+    "import/no-commonjs": 0,
+    "arrow-body-style": 0
   },
   "plugins": ["prettier"],
   "extends": [

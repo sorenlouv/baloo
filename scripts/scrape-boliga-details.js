@@ -1,7 +1,8 @@
 const cheerio = require('cheerio');
-const delay = require('delay');
 const axios = require('axios');
 const elasticsearch = require('elasticsearch');
+const _ = require('lodash');
+const retry = require('promise-retry');
 
 const client = new elasticsearch.Client({
   host: 'localhost:9200'
@@ -47,16 +48,21 @@ function getLocation(sqren) {
 }
 
 function getLocationAndResales(url) {
+  console.log('Fetching ', url);
   return axios
     .get(`http://www.boliga.dk${url}`, {
       timeout: 10000
     })
     .then(res => {
-      console.log('Fetching ', url);
+      console.log('Finished fetching', url);
       const resales = getResales(res.data, url);
       const location = getLocation(res.data);
 
       return { location, resales };
+    })
+    .catch(e => {
+      console.error('An error occured while fetching', url);
+      throw e;
     });
 }
 
@@ -68,23 +74,11 @@ function updateDoc({ id, location, resales }) {
     body: {
       doc: {
         location,
-        sales: resales
+        sales: resales,
+        updated: Date.now()
       }
     }
   });
-}
-
-function retry(maxAttempts, handler, ...args) {
-  function retrying(attemptCount) {
-    return handler(...args).catch(e => {
-      console.error(e);
-      if (attemptCount <= maxAttempts) {
-        return delay(1000).then(() => retrying(attemptCount + 1));
-      }
-    });
-  }
-
-  return retrying(0);
 }
 
 let scrolledHits = 0;
@@ -92,39 +86,51 @@ const processResponse = ({ _scroll_id: scrollId, hits }) => {
   scrolledHits += hits.hits.length;
   const promises = hits.hits.map(hit => {
     return retry(
-      5,
-      getLocationAndResales,
-      hit._source.url
+      (retry, retryCount) => {
+        console.log(`Retry #${retryCount}`);
+        return getLocationAndResales(hit._source.url).catch(retry);
+      },
+      { retries: 5 }
     ).then(({ location, resales }) => {
       console.log('Updating', hit._id, location, resales.length);
       return updateDoc({ id: hit._id, location, resales });
     });
   });
 
-  return Promise.all(promises).then(() => {
-    if (hits.total > scrolledHits) {
-      console.log('next scroll', scrolledHits);
-      return client.scroll({ scrollId, scroll: '5s' }).then(processResponse);
-    }
-    console.log('no next?', scrolledHits, hits.total);
-  });
+  return Promise.all(promises)
+    .catch(e => {
+      const status = _.get(e, 'response.status');
+      const path = _.get(e, 'request.path');
+      console.log('One or more did not succeed');
+      console.error(`${e.message}. Status: ${status} for ${path}`);
+    })
+    .then(() => {
+      if (hits.total > scrolledHits) {
+        console.log('next scroll', scrolledHits);
+        return client.scroll({ scrollId, scroll: '20s' }).then(processResponse);
+      }
+      console.log('no next?', scrolledHits, hits.total);
+    })
+    .then(() => {
+      console.log('Processed all. Finishing');
+    });
 };
 
 function init() {
   client
     .search({
+      size: 30,
       index: 'baloo',
       type: 'buildings',
-      scroll: '5s',
+      scroll: '20s',
       _source: 'url',
       body: {
         query: {
           bool: {
-            must_not: {
-              exists: {
-                field: 'location'
-              }
-            }
+            must_not: [
+              { exists: { field: 'location' } },
+              { exists: { field: 'updated' } }
+            ]
           }
         }
       }
@@ -134,6 +140,7 @@ function init() {
       console.log('finished');
     })
     .catch(e => {
+      console.log('stopped');
       console.error(e);
     });
 }
@@ -141,7 +148,7 @@ function init() {
 init();
 
 // getLocationAndResales(
-//   '/salg/info/400/96007/EA86E438-8B58-40DB-AACB-AC8624D7A721'
+//   '/salg/info/461/601952/E9FDB71E-19EB-44C4-942B-07F2FA86EE85'
 // )
 //   .then(({ location, resales }) => {
 //     console.log(location, resales);
