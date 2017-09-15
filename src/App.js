@@ -1,55 +1,69 @@
-/* global google */
-import React from 'react';
-import {
-  withGoogleMap,
-  GoogleMap,
-  Marker,
-  InfoWindow
-} from 'react-google-maps';
+import React, { Component } from 'react';
+import numeral from 'numeral';
+import Map from './components/GoogleMaps';
+import { getBuildings } from './rest';
 
-const copenhagenLocation = { lat: 55.6760968, lng: 12.568337199999974 };
+const copenhagenLocation = {
+  lat: 55.6760968,
+  lng: 12.568337199999974
+};
 
-const SimpleMapExampleGoogleMap = withGoogleMap(props => (
-  <GoogleMap defaultZoom={12} defaultCenter={copenhagenLocation}>
-    <Marker position={copenhagenLocation}>
-      <InfoWindow>
-        <div>
-          <strong>HEY!</strong>
-        </div>
-      </InfoWindow>
-    </Marker>
-  </GoogleMap>
-));
+class App extends Component {
+  state = {
+    buildings: [],
+    center: copenhagenLocation
+  };
 
-function App() {
-  return (
-    <SimpleMapExampleGoogleMap
-      containerElement={
-        <div
-          style={{
-            position: 'absolute',
-            top: 0,
-            left: 0,
-            right: 0,
-            bottom: 0,
-            justifyContent: 'flex-end',
-            alignItems: 'center'
-          }}
-        />
+  async componentDidMount() {
+    const response = await getBuildings({
+      lat: this.state.center.lat,
+      lon: this.state.center.lng,
+      distance: 5
+    });
+    this.setState({ buildings: response.hits.hits });
+  }
+
+  async componentWillUpdate(nextProps, nextState) {
+    if (this.state.center !== nextState.center) {
+      const response = await getBuildings({
+        lat: this.state.center.lat,
+        lon: this.state.center.lng,
+        distance: 5
+      });
+      this.setState({ buildings: response.hits.hits });
+    }
+  }
+
+  onBoundsChanged = ({ center }) => {
+    this.setState({
+      center: {
+        lat: center.lat(),
+        lng: center.lng()
       }
-      mapElement={
-        <div
-          style={{
-            position: 'absolute',
-            top: 0,
-            left: 0,
-            right: 0,
-            bottom: 0
-          }}
-        />
-      }
-    />
-  );
+    });
+  };
+
+  getMarkers = () => {
+    return this.state.buildings.map(building => {
+      return {
+        text: `${numeral(building._source.sales[0].price).format('0.0 a')} kr.`,
+        location: {
+          lat: building._source.location.lat,
+          lng: building._source.location.lon
+        }
+      };
+    });
+  };
+
+  render() {
+    return (
+      <Map
+        center={this.state.center}
+        markers={this.getMarkers()}
+        onBoundsChanged={this.onBoundsChanged}
+      />
+    );
+  }
 }
 
 export default App;

@@ -5,7 +5,7 @@ const _ = require('lodash');
 const retry = require('promise-retry');
 
 const client = new elasticsearch.Client({
-  host: 'localhost:9200'
+  host: 'localhost:9201'
 });
 
 function getResales(data) {
@@ -87,10 +87,18 @@ const processResponse = ({ _scroll_id: scrollId, hits }) => {
   const promises = hits.hits.map(hit => {
     return retry(
       (retry, retryCount) => {
-        console.log(`Retry #${retryCount}`);
-        return getLocationAndResales(hit._source.url).catch(retry);
+        if (retryCount > 1) {
+          console.log(`Retry #${retryCount - 1}`);
+        }
+        return getLocationAndResales(hit._source.url).catch(e => {
+          const status = _.get(e, 'response.status');
+          if (status === 500) {
+            throw e;
+          }
+          retry(e);
+        });
       },
-      { retries: 5 }
+      { retries: 3 }
     ).then(({ location, resales }) => {
       console.log('Updating', hit._id, location, resales.length);
       return updateDoc({ id: hit._id, location, resales });
@@ -127,10 +135,11 @@ function init() {
       body: {
         query: {
           bool: {
-            must_not: [
-              { exists: { field: 'location' } },
-              { exists: { field: 'updated' } }
-            ]
+            must_not: {
+              exists: {
+                field: 'updated'
+              }
+            }
           }
         }
       }
