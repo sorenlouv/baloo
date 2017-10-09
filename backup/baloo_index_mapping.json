@@ -8,8 +8,7 @@
             "fields": { "keyword": { "type": "keyword", "ignore_above": 256 } }
           },
           "houseType": {
-            "type": "text",
-            "fields": { "keyword": { "type": "keyword", "ignore_above": 256 } }
+            "type": "keyword"
           },
           "location": { "type": "geo_point" },
           "roomCount": { "type": "long" },
@@ -19,10 +18,7 @@
               "date": { "type": "date" },
               "price": { "type": "long" },
               "type": {
-                "type": "text",
-                "fields": {
-                  "keyword": { "type": "keyword", "ignore_above": 256 }
-                }
+                "type": "keyword"
               }
             }
           },
@@ -32,8 +28,7 @@
             "fields": { "keyword": { "type": "keyword", "ignore_above": 256 } }
           },
           "url": {
-            "type": "text",
-            "fields": { "keyword": { "type": "keyword", "ignore_above": 256 } }
+            "type": "keyword"
           },
           "year": { "type": "long" },
           "zipcode": { "type": "long" }
